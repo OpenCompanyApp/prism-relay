@@ -1,0 +1,24 @@
+{
+    "name": "opencompanyapp/prism-relay",
+    "description": "Provider normalizer and registry for Prism PHP — custom providers, error categorization, tool call sanitization, caching strategy",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "prism-php/prism": "^0.99 || ^1.0",
+        "psr/log": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenCompany\\PrismRelay\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "OpenCompany\\PrismRelay\\PrismRelayServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
