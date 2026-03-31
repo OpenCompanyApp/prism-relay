@@ -26,7 +26,7 @@ class PrismRelayServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->afterResolving(PrismManager::class, function (PrismManager $manager) {
+        $this->app->afterResolving(PrismManager::class, function (PrismManager $manager) {
             $this->app->make(RelayManager::class)->register($manager);
         });
     }
