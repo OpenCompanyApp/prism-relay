@@ -11,9 +11,13 @@ readonly class ModelInfo
     public function __construct(
         public string $model,
         public int $contextWindow,
+        public int $maxOutput = 4096,
         public ?float $inputPricePerMillion = null,
         public ?float $outputPricePerMillion = null,
         public ?float $cachedInputPricePerMillion = null,
+        public ?float $cachedWritePricePerMillion = null,
+        public bool $thinking = false,
+        public ?string $displayName = null,
         public CacheCapability $cacheCapability = CacheCapability::None,
     ) {}
 }

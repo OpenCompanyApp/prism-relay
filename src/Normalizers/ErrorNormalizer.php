@@ -56,6 +56,15 @@ class ErrorNormalizer
                 message: $e->getMessage(),
                 previous: $e,
             ),
+            self::hasRetryAfter($e) => new ProviderError(
+                provider: $provider,
+                model: $model,
+                category: ErrorCategory::Server,
+                retryable: true,
+                retryAfterSeconds: self::extractRetryAfter($e),
+                message: $e->getMessage(),
+                previous: $e,
+            ),
             default => new ProviderError(
                 provider: $provider,
                 model: $model,
@@ -110,5 +119,30 @@ class ErrorNormalizer
             || str_contains($message, '502')
             || str_contains($message, '503')
             || str_contains($message, '504');
+    }
+
+    /**
+     * Check if an exception carries a retryAfterSeconds hint (duck-typing).
+     * Supports KosmoKrator's RetryableHttpException and similar.
+     */
+    private static function hasRetryAfter(\Throwable $e): bool
+    {
+        return property_exists($e, 'retryAfterSeconds')
+            || method_exists($e, 'getRetryAfterSeconds');
+    }
+
+    private static function extractRetryAfter(\Throwable $e): ?int
+    {
+        if (property_exists($e, 'retryAfterSeconds') && $e->retryAfterSeconds !== null) {
+            return (int) $e->retryAfterSeconds;
+        }
+
+        if (method_exists($e, 'getRetryAfterSeconds')) {
+            $value = $e->getRetryAfterSeconds();
+
+            return $value !== null ? (int) $value : null;
+        }
+
+        return null;
     }
 }
