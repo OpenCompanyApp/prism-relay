@@ -16,8 +16,8 @@ class RelayManager
 {
     /** @var array<string, class-string> */
     private array $providerMap = [
-        'glm' => Glm::class,
-        'glm-coding' => GlmCoding::class,
+        'z-api' => Glm::class,
+        'z' => GlmCoding::class,
         'kimi' => Kimi::class,
         'kimi-coding' => KimiCoding::class,
         'minimax' => MiniMax::class,

@@ -301,8 +301,8 @@ return [
 
     // --- Relay custom providers ---
 
-    'glm' => [
-        'default_model' => 'glm-4-plus',
+    'z-api' => [
+        'default_model' => 'glm-5.1',
         'url' => 'https://open.bigmodel.cn/api/paas/v4',
         'models' => [
             'glm-5.1' => [
@@ -333,10 +333,35 @@ return [
         ],
     ],
 
-    'glm-coding' => [
-        'default_model' => 'glm-4.7',
+    'z' => [
+        'default_model' => 'glm-5.1',
         'url' => 'https://api.z.ai/api/coding/paas/v4',
         'models' => [
+            'glm-5.1' => [
+                'display_name' => 'GLM 5.1',
+                'context' => 204800, 'max_output' => 131072,
+                'input' => 1.0, 'output' => 3.20,
+                'thinking' => true,
+            ],
+            'glm-5' => [
+                'display_name' => 'GLM 5',
+                'context' => 204800, 'max_output' => 131072,
+                'input' => 1.0, 'output' => 3.20,
+                'thinking' => true,
+            ],
+            'glm-5-turbo' => [
+                'display_name' => 'GLM 5 Turbo',
+                'context' => 204800, 'max_output' => 16384,
+                'input' => 0.50, 'output' => 1.50,
+            ],
+            'glm-4-plus' => [
+                'display_name' => 'GLM 4 Plus',
+                'context' => 128000, 'max_output' => 4096,
+            ],
+            'glm-4-flash' => [
+                'display_name' => 'GLM 4 Flash',
+                'context' => 128000, 'max_output' => 4096,
+            ],
             'glm-4.7' => [
                 'display_name' => 'GLM 4.7',
                 'context' => 128000, 'max_output' => 16384,
