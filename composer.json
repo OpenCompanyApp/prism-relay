@@ -12,6 +12,9 @@
             "OpenCompany\\PrismRelay\\": "src/"
         }
     },
+    "scripts": {
+        "sync-registry": "node scripts/sync-registry.mjs"
+    },
     "extra": {
         "laravel": {
             "providers": [

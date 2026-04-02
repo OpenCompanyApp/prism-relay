@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenCompany\PrismRelay\Capabilities;
 
+use OpenCompany\PrismRelay\Registry\RelayRegistry;
+
 /**
  * Declares which request parameters a specific provider supports.
  *
@@ -19,16 +21,12 @@ class ProviderCapabilities
 {
     private string $provider;
 
-    /** @var array<string, array{temperature: bool, top_p: bool, max_tokens: bool, streaming: bool}> */
-    private array $capabilities;
+    private RelayRegistry $registry;
 
-    /**
-     * @param  array<string, array{temperature: bool, top_p: bool, max_tokens: bool, streaming: bool}>  $capabilities
-     */
-    public function __construct(string $provider, ?array $capabilities = null)
+    public function __construct(string $provider, ?RelayRegistry $registry = null)
     {
         $this->provider = $provider;
-        $this->capabilities = $capabilities ?? self::defaults();
+        $this->registry = $registry ?? new RelayRegistry;
     }
 
     /**
@@ -44,7 +42,7 @@ class ProviderCapabilities
      */
     public function supportsTemperature(): bool
     {
-        return $this->capabilities[$this->provider]['temperature'] ?? true;
+        return $this->capability('temperature');
     }
 
     /**
@@ -52,7 +50,7 @@ class ProviderCapabilities
      */
     public function supportsTopP(): bool
     {
-        return $this->capabilities[$this->provider]['top_p'] ?? true;
+        return $this->capability('top_p');
     }
 
     /**
@@ -60,7 +58,7 @@ class ProviderCapabilities
      */
     public function supportsMaxTokens(): bool
     {
-        return $this->capabilities[$this->provider]['max_tokens'] ?? true;
+        return $this->capability('max_tokens');
     }
 
     /**
@@ -68,7 +66,17 @@ class ProviderCapabilities
      */
     public function supportsStreaming(): bool
     {
-        return $this->capabilities[$this->provider]['streaming'] ?? true;
+        return $this->capability('streaming');
+    }
+
+    private function capability(string $key): bool
+    {
+        $provider = $this->registry->provider($this->provider);
+        $capabilities = is_array($provider['capabilities'] ?? null)
+            ? $provider['capabilities']
+            : self::defaults()[$this->registry->canonicalProvider($this->provider) ?? $this->provider] ?? [];
+
+        return $capabilities[$key] ?? true;
     }
 
     /**

@@ -6,18 +6,18 @@ namespace OpenCompany\PrismRelay\Meta;
 
 use OpenCompany\PrismRelay\Caching\CacheCapability;
 use OpenCompany\PrismRelay\Caching\CacheStrategy;
+use OpenCompany\PrismRelay\Registry\RelayRegistry;
 
 class ProviderMeta
 {
-    /** @var array<string, array<string, mixed>> */
-    private array $providers;
+    private RelayRegistry $registry;
 
     /**
      * @param  array<string, array<string, mixed>>|null  $providers
      */
     public function __construct(?array $providers = null)
     {
-        $this->providers = $providers ?? require __DIR__ . '/../../config/relay.php';
+        $this->registry = new RelayRegistry($providers);
     }
 
     /**
@@ -25,7 +25,7 @@ class ProviderMeta
      */
     public function defaultModel(string $provider): ?string
     {
-        return $this->providers[$provider]['default_model'] ?? null;
+        return $this->registry->provider($provider)['default_model'] ?? null;
     }
 
     /**
@@ -33,7 +33,7 @@ class ProviderMeta
      */
     public function url(string $provider): ?string
     {
-        return $this->providers[$provider]['url'] ?? null;
+        return $this->registry->provider($provider)['url'] ?? null;
     }
 
     /**
@@ -41,20 +41,9 @@ class ProviderMeta
      */
     public function contextWindow(string $provider, string $model): int
     {
-        $models = $this->providers[$provider]['models'] ?? [];
+        $info = $this->registry->model($provider, $model);
 
-        if (isset($models[$model]['context'])) {
-            return (int) $models[$model]['context'];
-        }
-
-        // Try prefix matching (e.g., 'claude-sonnet' matches 'claude-sonnet-4-5-*')
-        foreach ($models as $modelKey => $info) {
-            if (str_starts_with($model, $modelKey) || str_starts_with($modelKey, $model)) {
-                return (int) ($info['context'] ?? 32000);
-            }
-        }
-
-        return 32000; // Conservative default
+        return isset($info['context']) ? (int) $info['context'] : 32000;
     }
 
     /**
@@ -115,20 +104,7 @@ class ProviderMeta
      */
     private function findModelInfo(string $provider, string $model): array
     {
-        $models = $this->providers[$provider]['models'] ?? [];
-
-        if (isset($models[$model])) {
-            return $models[$model];
-        }
-
-        // Prefix match
-        foreach ($models as $modelKey => $info) {
-            if (str_starts_with($model, $modelKey) || str_starts_with($modelKey, $model)) {
-                return $info;
-            }
-        }
-
-        return [];
+        return $this->registry->model($provider, $model);
     }
 
     /**
@@ -138,7 +114,7 @@ class ProviderMeta
      */
     public function allProviders(): array
     {
-        return array_keys($this->providers);
+        return $this->registry->canonicalProviders();
     }
 
     /**
@@ -146,7 +122,7 @@ class ProviderMeta
      */
     public function has(string $provider): bool
     {
-        return isset($this->providers[$provider]);
+        return $this->registry->hasProvider($provider);
     }
 
     /**
@@ -156,6 +132,6 @@ class ProviderMeta
      */
     public function models(string $provider): array
     {
-        return array_keys($this->providers[$provider]['models'] ?? []);
+        return $this->registry->models($provider);
     }
 }
