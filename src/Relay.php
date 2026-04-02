@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace OpenCompany\PrismRelay;
 
 use OpenCompany\PrismRelay\Contracts\RelayListener;
+use OpenCompany\PrismRelay\Caching\PromptCacheOrchestrator;
+use OpenCompany\PrismRelay\Caching\PromptCachePlan;
 use OpenCompany\PrismRelay\Errors\ProviderError;
 use OpenCompany\PrismRelay\Meta\ProviderMeta;
 use OpenCompany\PrismRelay\Normalizers\ErrorNormalizer;
 use OpenCompany\PrismRelay\Normalizers\ToolCallNormalizer;
+use OpenCompany\PrismRelay\Support\OpenAiCompatibleMessageMapper;
 use OpenCompany\PrismRelay\Support\NullRelayListener;
+use Prism\Prism\Contracts\Message;
+use Prism\Prism\ValueObjects\Messages\SystemMessage;
 use Prism\Prism\Text\Response as TextResponse;
 use Prism\Prism\Text\Step;
 
@@ -17,10 +22,18 @@ class Relay
 {
     private ProviderMeta $providerMeta;
 
+    private PromptCacheOrchestrator $promptCacheOrchestrator;
+
+    private OpenAiCompatibleMessageMapper $openAiCompatibleMessageMapper;
+
     public function __construct(
         private RelayListener $listener = new NullRelayListener,
+        ?PromptCacheOrchestrator $promptCacheOrchestrator = null,
+        ?OpenAiCompatibleMessageMapper $openAiCompatibleMessageMapper = null,
     ) {
         $this->providerMeta = new ProviderMeta;
+        $this->promptCacheOrchestrator = $promptCacheOrchestrator ?? new PromptCacheOrchestrator;
+        $this->openAiCompatibleMessageMapper = $openAiCompatibleMessageMapper ?? new OpenAiCompatibleMessageMapper;
     }
 
     /**
@@ -80,6 +93,24 @@ class Relay
     public function beforeRequest(string $provider, string $model): void
     {
         $this->listener->beforeRequest($provider, $model);
+    }
+
+    /**
+     * @param  SystemMessage[]  $systemPrompts
+     * @param  Message[]  $messages
+     */
+    public function planPromptCache(string $provider, string $model, array $systemPrompts, array $messages): PromptCachePlan
+    {
+        return $this->promptCacheOrchestrator->plan($provider, $model, $systemPrompts, $messages);
+    }
+
+    /**
+     * @param  Message[]  $messages
+     * @return array<int, array<string, mixed>>
+     */
+    public function mapOpenAiCompatibleMessages(string $provider, array $messages): array
+    {
+        return $this->openAiCompatibleMessageMapper->map($provider, $messages);
     }
 
     /**
