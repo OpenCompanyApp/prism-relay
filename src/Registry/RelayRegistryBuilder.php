@@ -16,20 +16,30 @@ final class RelayRegistryBuilder
     /**
      * @param  array<string, array<string, mixed>>  $appOverrides
      */
-    public function build(array $appOverrides = []): RelayRegistry
+    public function build(array $appOverrides = [], bool $includeLiveProviders = true): RelayRegistry
     {
-        return new RelayRegistry($this->providers($appOverrides));
+        return new RelayRegistry($this->providers($appOverrides, $includeLiveProviders));
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $appOverrides
+     */
+    public function buildBundled(array $appOverrides = []): RelayRegistry
+    {
+        return $this->build($appOverrides, false);
     }
 
     /**
      * @param  array<string, array<string, mixed>>  $appOverrides
      * @return array<string, array<string, mixed>>
      */
-    public function providers(array $appOverrides = []): array
+    public function providers(array $appOverrides = [], bool $includeLiveProviders = true): array
     {
         $bundled = $this->loadBundledSnapshot();
         $manual = $this->loadBundledManual();
-        $live = ($this->modelsDev ?? new ModelsDevClient)->providers();
+        $live = $includeLiveProviders
+            ? ($this->modelsDev ?? new ModelsDevClient)->providers()
+            : [];
 
         $providers = $this->merge($bundled, $live);
         $providers = $this->applyImports($providers, $manual);

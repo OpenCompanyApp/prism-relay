@@ -28,10 +28,11 @@ class Relay
 
     public function __construct(
         private RelayListener $listener = new NullRelayListener,
+        ?ProviderMeta $providerMeta = null,
         ?PromptCacheOrchestrator $promptCacheOrchestrator = null,
         ?OpenAiCompatibleMessageMapper $openAiCompatibleMessageMapper = null,
     ) {
-        $this->providerMeta = new ProviderMeta;
+        $this->providerMeta = $providerMeta ?? new ProviderMeta;
         $this->promptCacheOrchestrator = $promptCacheOrchestrator ?? new PromptCacheOrchestrator;
         $this->openAiCompatibleMessageMapper = $openAiCompatibleMessageMapper ?? new OpenAiCompatibleMessageMapper;
     }

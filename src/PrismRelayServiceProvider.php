@@ -16,7 +16,12 @@ class PrismRelayServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(RelayRegistryBuilder::class);
-        $this->app->singleton(RelayRegistry::class, fn ($app) => $app->make(RelayRegistryBuilder::class)->build());
+        $this->app->singleton(RelayRegistry::class, function ($app) {
+            $builder = $app->make(RelayRegistryBuilder::class);
+            $enabled = (bool) data_get($app->make('config')->all(), 'prism-relay.models_dev.enabled', true);
+
+            return $enabled ? $builder->build() : $builder->buildBundled();
+        });
         $this->app->singleton(RelayManager::class, fn ($app) => new RelayManager($app->make(RelayRegistry::class)));
 
         $this->app->singleton(Relay::class, function ($app) {
@@ -24,7 +29,10 @@ class PrismRelayServiceProvider extends ServiceProvider
                 ? $app->make(RelayListener::class)
                 : new NullRelayListener;
 
-            return new Relay($listener);
+            return new Relay(
+                listener: $listener,
+                providerMeta: new \OpenCompany\PrismRelay\Meta\ProviderMeta($app->make(RelayRegistry::class)),
+            );
         });
     }
 
