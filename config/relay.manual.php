@@ -395,12 +395,39 @@ return [
     ],
 
     'mimo' => [
-        'label' => 'Xiaomi MiMo',
+        'label' => 'Xiaomi MiMo Token Plan',
         'description' => 'MiMo Token Plan endpoint',
         'driver' => 'openai-compatible',
         'auth' => 'api_key',
         'default_model' => 'mimo-v2-pro',
         'url' => 'https://token-plan-sgp.xiaomimimo.com/v1',
+        'modalities' => [
+            'input' => ['text', 'image'],
+            'output' => ['text'],
+        ],
+        'models' => [
+            'mimo-v2-pro' => [
+                'display_name' => 'MiMo V2 Pro',
+                'context' => 1048576,
+                'max_output' => 131072,
+                'input' => 0.0,
+                'output' => 0.0,
+                'pricing_kind' => 'token_plan',
+                'modalities' => [
+                    'input' => ['text', 'image'],
+                    'output' => ['text'],
+                ],
+            ],
+        ],
+    ],
+
+    'mimo-api' => [
+        'label' => 'Xiaomi MiMo API',
+        'description' => 'MiMo pay-as-you-go API endpoint',
+        'driver' => 'openai-compatible',
+        'auth' => 'api_key',
+        'default_model' => 'mimo-v2-pro',
+        'url' => 'https://api.xiaomimimo.com/v1',
         'modalities' => [
             'input' => ['text', 'image'],
             'output' => ['text'],

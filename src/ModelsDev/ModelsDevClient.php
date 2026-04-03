@@ -210,7 +210,8 @@ final class ModelsDevClient
         $modalities = is_array($model['modalities'] ?? null) ? $model['modalities'] : [];
         $reference = $this->referencePricing($providerId, $modelId, $allProviders);
         $isCodingPlan = $this->isCodingPlanProvider($providerId);
-        $isFree = ! $isCodingPlan
+        $isTokenPlan = $this->isTokenPlanProvider($providerId);
+        $isFree = ! $isCodingPlan && ! $isTokenPlan
             && ((float) ($cost['input'] ?? 0.0) === 0.0)
             && ((float) ($cost['output'] ?? 0.0) === 0.0);
 
@@ -230,7 +231,7 @@ final class ModelsDevClient
                 'output' => $this->stringList($modalities['output'] ?? ['text']),
             ],
             'status' => is_string($model['status'] ?? null) ? $model['status'] : null,
-            'pricing_kind' => $isCodingPlan ? 'coding_plan' : ($isFree ? 'public_free' : 'paid'),
+            'pricing_kind' => $isCodingPlan ? 'coding_plan' : ($isTokenPlan ? 'token_plan' : ($isFree ? 'public_free' : 'paid')),
             'reference_input' => $reference['input'],
             'reference_output' => $reference['output'],
         ];
@@ -303,6 +304,11 @@ final class ModelsDevClient
         return str_ends_with($providerId, '-coding-plan')
             || str_ends_with($providerId, '-coding-plan-cn')
             || str_ends_with($providerId, '-cn-coding-plan');
+    }
+
+    private function isTokenPlanProvider(string $providerId): bool
+    {
+        return str_contains($providerId, 'token-plan');
     }
 
     /**
