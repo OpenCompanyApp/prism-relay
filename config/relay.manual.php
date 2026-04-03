@@ -293,8 +293,8 @@ return [
         'default_model' => 'gpt-5.3-codex',
         'url' => 'https://chatgpt.com/backend-api/codex',
         'models' => [
-            'gpt-5.4' => ['display_name' => 'GPT-5.4', 'context' => 128000, 'max_output' => 16384, 'thinking' => true],
-            'gpt-5.4-mini' => ['display_name' => 'GPT-5.4 Mini', 'context' => 128000, 'max_output' => 16384],
+            'gpt-5.4' => ['display_name' => 'GPT-5.4', 'context' => 400000, 'max_output' => 128000, 'thinking' => true],
+            'gpt-5.4-mini' => ['display_name' => 'GPT-5.4 Mini', 'context' => 400000, 'max_output' => 128000],
             'gpt-5.3-codex' => ['display_name' => 'GPT-5.3 Codex', 'context' => 128000, 'max_output' => 16384, 'thinking' => true],
             'gpt-5.2' => ['display_name' => 'GPT-5.2', 'context' => 128000, 'max_output' => 16384, 'thinking' => true],
             'gpt-5.2-codex' => ['display_name' => 'GPT-5.2 Codex', 'context' => 128000, 'max_output' => 16384, 'thinking' => true],
