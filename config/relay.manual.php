@@ -288,6 +288,8 @@ return [
     // --- Codex (ChatGPT subscription, registered by prism-codex) ---
 
     'codex' => [
+        'driver' => 'codex',
+        'auth' => 'oauth',
         'default_model' => 'gpt-5.3-codex',
         'url' => 'https://chatgpt.com/backend-api/codex',
         'models' => [
@@ -307,7 +309,8 @@ return [
     // --- Relay custom providers ---
 
     'z-api' => [
-        'default_model' => 'glm-5.1',
+        'models_dev_provider' => 'zai',
+        'default_model' => 'glm-5',
         'url' => 'https://open.bigmodel.cn/api/paas/v4',
         'models' => [
             'glm-5.1' => [
@@ -339,7 +342,9 @@ return [
     ],
 
     'z' => [
-        'default_model' => 'glm-5.1',
+        'models_dev_provider' => 'zai-coding-plan',
+        'pricing_reference_provider' => 'zai',
+        'default_model' => 'glm-5',
         'url' => 'https://api.z.ai/api/coding/paas/v4',
         'models' => [
             'glm-5.1' => [
@@ -347,17 +352,6 @@ return [
                 'context' => 204800, 'max_output' => 131072,
                 'input' => 1.0, 'output' => 3.20,
                 'thinking' => true,
-            ],
-            'glm-5' => [
-                'display_name' => 'GLM 5',
-                'context' => 204800, 'max_output' => 131072,
-                'input' => 1.0, 'output' => 3.20,
-                'thinking' => true,
-            ],
-            'glm-5-turbo' => [
-                'display_name' => 'GLM 5 Turbo',
-                'context' => 204800, 'max_output' => 16384,
-                'input' => 0.50, 'output' => 1.50,
             ],
             'glm-4-plus' => [
                 'display_name' => 'GLM 4 Plus',
@@ -367,14 +361,11 @@ return [
                 'display_name' => 'GLM 4 Flash',
                 'context' => 128000, 'max_output' => 4096,
             ],
-            'glm-4.7' => [
-                'display_name' => 'GLM 4.7',
-                'context' => 128000, 'max_output' => 16384,
-            ],
         ],
     ],
 
     'kimi' => [
+        'models_dev_provider' => 'moonshotai',
         'default_model' => 'kimi-k2.5',
         'url' => 'https://api.moonshot.ai/v1',
         'models' => [
@@ -391,6 +382,7 @@ return [
     ],
 
     'kimi-coding' => [
+        'models_dev_provider' => 'moonshotai',
         'default_model' => 'kimi-k2.5',
         'url' => 'https://api.moonshot.ai/v1',
         'models' => [
@@ -402,8 +394,34 @@ return [
         ],
     ],
 
+    'mimo' => [
+        'label' => 'Xiaomi MiMo',
+        'description' => 'MiMo Token Plan endpoint',
+        'driver' => 'openai-compatible',
+        'auth' => 'api_key',
+        'default_model' => 'mimo-v2-pro',
+        'url' => 'https://token-plan-sgp.xiaomimimo.com/v1',
+        'modalities' => [
+            'input' => ['text', 'image'],
+            'output' => ['text'],
+        ],
+        'models' => [
+            'mimo-v2-pro' => [
+                'display_name' => 'MiMo V2 Pro',
+                'context' => 1048576,
+                'max_output' => 131072,
+                'modalities' => [
+                    'input' => ['text', 'image'],
+                    'output' => ['text'],
+                ],
+            ],
+        ],
+    ],
+
     'minimax' => [
-        'default_model' => 'MiniMax-M1',
+        'models_dev_provider' => 'minimax-coding-plan',
+        'pricing_reference_provider' => 'minimax',
+        'default_model' => 'MiniMax-M2.7',
         'url' => 'https://api.minimax.io/anthropic/v1',
         'models' => [
             'MiniMax-M1' => [
@@ -414,7 +432,9 @@ return [
     ],
 
     'minimax-cn' => [
-        'default_model' => 'MiniMax-M1',
+        'models_dev_provider' => 'minimax-cn-coding-plan',
+        'pricing_reference_provider' => 'minimax-cn',
+        'default_model' => 'MiniMax-M2.7',
         'url' => 'https://api.minimaxi.com/anthropic/v1',
         'models' => [
             'MiniMax-M1' => [

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenCompany\PrismRelay\Capabilities;
 
 use OpenCompany\PrismRelay\Registry\RelayRegistry;
+use OpenCompany\PrismRelay\Registry\RelayRegistryBuilder;
 
 /**
  * Declares which request parameters a specific provider supports.
@@ -26,7 +27,7 @@ class ProviderCapabilities
     public function __construct(string $provider, ?RelayRegistry $registry = null)
     {
         $this->provider = $provider;
-        $this->registry = $registry ?? new RelayRegistry;
+        $this->registry = $registry ?? (new RelayRegistryBuilder)->build();
     }
 
     /**
@@ -71,12 +72,7 @@ class ProviderCapabilities
 
     private function capability(string $key): bool
     {
-        $provider = $this->registry->provider($this->provider);
-        $capabilities = is_array($provider['capabilities'] ?? null)
-            ? $provider['capabilities']
-            : self::defaults()[$this->registry->canonicalProvider($this->provider) ?? $this->provider] ?? [];
-
-        return $capabilities[$key] ?? true;
+        return $this->registry->capabilities($this->provider)[$key] ?? true;
     }
 
     /**

@@ -18,6 +18,14 @@ readonly class ModelInfo
         public ?float $cachedWritePricePerMillion = null,
         public bool $thinking = false,
         public ?string $displayName = null,
+        public string $pricingKind = 'paid',
+        public ?float $referenceInputPricePerMillion = null,
+        public ?float $referenceOutputPricePerMillion = null,
+        public ?string $status = null,
+        /** @var list<string> */
+        public array $inputModalities = ['text'],
+        /** @var list<string> */
+        public array $outputModalities = ['text'],
         public CacheCapability $cacheCapability = CacheCapability::None,
     ) {}
 }

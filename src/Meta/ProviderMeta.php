@@ -7,17 +7,26 @@ namespace OpenCompany\PrismRelay\Meta;
 use OpenCompany\PrismRelay\Caching\CacheCapability;
 use OpenCompany\PrismRelay\Caching\CacheStrategy;
 use OpenCompany\PrismRelay\Registry\RelayRegistry;
+use OpenCompany\PrismRelay\Registry\RelayRegistryBuilder;
 
 class ProviderMeta
 {
     private RelayRegistry $registry;
 
     /**
-     * @param  array<string, array<string, mixed>>|null  $providers
+     * @param  array<string, array<string, mixed>>|RelayRegistry|null  $providers
      */
-    public function __construct(?array $providers = null)
+    public function __construct(array|RelayRegistry|null $providers = null)
     {
-        $this->registry = new RelayRegistry($providers);
+        if ($providers instanceof RelayRegistry) {
+            $this->registry = $providers;
+
+            return;
+        }
+
+        $this->registry = $providers !== null
+            ? new RelayRegistry($providers)
+            : (new RelayRegistryBuilder)->build();
     }
 
     /**
@@ -63,6 +72,12 @@ class ProviderMeta
             cachedWritePricePerMillion: isset($info['cached_write']) ? (float) $info['cached_write'] : null,
             thinking: (bool) ($info['thinking'] ?? false),
             displayName: $info['display_name'] ?? null,
+            pricingKind: (string) ($info['pricing_kind'] ?? 'paid'),
+            referenceInputPricePerMillion: isset($info['reference_input']) ? (float) $info['reference_input'] : null,
+            referenceOutputPricePerMillion: isset($info['reference_output']) ? (float) $info['reference_output'] : null,
+            status: is_string($info['status'] ?? null) ? $info['status'] : null,
+            inputModalities: $this->registry->modelModalities($provider, $model)['input'],
+            outputModalities: $this->registry->modelModalities($provider, $model)['output'],
             cacheCapability: CacheStrategy::capability($provider),
         );
     }
@@ -133,5 +148,10 @@ class ProviderMeta
     public function models(string $provider): array
     {
         return $this->registry->models($provider);
+    }
+
+    public function registry(): RelayRegistry
+    {
+        return $this->registry;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenCompany\PrismRelay\Support;
 
 use Prism\Prism\Contracts\Message;
+use Prism\Prism\ValueObjects\Media\Image;
 use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 use Prism\Prism\ValueObjects\Messages\SystemMessage;
 use Prism\Prism\ValueObjects\Messages\ToolResultMessage;
@@ -62,7 +63,7 @@ final class OpenAiCompatibleMessageMapper
      */
     private function mapUserMessage(string $provider, UserMessage $message): array
     {
-        if ($provider === 'openrouter' && $message->providerOptions('cacheType') !== null) {
+        if ($provider === 'openrouter' && $message->providerOptions('cacheType') !== null && $message->images() === []) {
             return [
                 'role' => 'user',
                 'content' => [[
@@ -73,9 +74,16 @@ final class OpenAiCompatibleMessageMapper
             ];
         }
 
+        if ($message->images() === []) {
+            return [
+                'role' => 'user',
+                'content' => $message->text(),
+            ];
+        }
+
         return [
             'role' => 'user',
-            'content' => $message->text(),
+            'content' => $this->mapUserContentParts($provider, $message),
         ];
     }
 
@@ -154,5 +162,59 @@ final class OpenAiCompatibleMessageMapper
                 ? ['type' => $message->providerOptions('cacheType')]
                 : null,
         ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapUserContentParts(string $provider, UserMessage $message): array
+    {
+        $parts = [];
+        $text = $message->text();
+
+        if ($text !== '') {
+            $textPart = [
+                'type' => 'text',
+                'text' => $text,
+            ];
+
+            if ($provider === 'openrouter' && $message->providerOptions('cacheType') !== null) {
+                $textPart['cache_control'] = ['type' => $message->providerOptions('cacheType')];
+            }
+
+            $parts[] = $textPart;
+        }
+
+        foreach ($message->images() as $image) {
+            $parts[] = $this->mapImage($image);
+        }
+
+        return $parts;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapImage(Image $image): array
+    {
+        if ($image->isFileId()) {
+            return [
+                'type' => 'image_file',
+                'file_id' => $image->fileId(),
+            ];
+        }
+
+        $url = $image->isUrl()
+            ? $image->url()
+            : sprintf(
+                'data:%s;base64,%s',
+                $image->mimeType() ?? 'image/png',
+                $image->base64()
+            );
+
+        return [
+            'type' => 'image_url',
+            'image_url' => ['url' => $url],
+        ];
     }
 }

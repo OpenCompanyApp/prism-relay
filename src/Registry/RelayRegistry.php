@@ -64,6 +64,14 @@ class RelayRegistry
     }
 
     /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function allProviders(): array
+    {
+        return $this->providers;
+    }
+
+    /**
      * @return string[]
      */
     public function registrationNames(): array
@@ -147,6 +155,100 @@ class RelayRegistry
         return null;
     }
 
+    public function source(string $provider): string
+    {
+        return (string) (($this->provider($provider)['source'] ?? 'built_in'));
+    }
+
+    public function driver(string $provider): string
+    {
+        $definition = $this->provider($provider) ?? [];
+
+        return (string) ($definition['driver'] ?? $this->inferDriver((string) ($this->canonicalProvider($provider) ?? $provider)));
+    }
+
+    public function url(string $provider): string
+    {
+        return (string) (($this->provider($provider)['url'] ?? ''));
+    }
+
+    public function authMode(string $provider): string
+    {
+        return (string) (($this->provider($provider)['auth'] ?? ($this->canonicalProvider($provider) === 'codex' ? 'oauth' : 'api_key')));
+    }
+
+    /**
+     * @return array{temperature: bool, top_p: bool, max_tokens: bool, streaming: bool}
+     */
+    public function capabilities(string $provider): array
+    {
+        $canonical = (string) ($this->canonicalProvider($provider) ?? $provider);
+        $capabilities = $this->provider($provider)['capabilities'] ?? [];
+        $defaults = [
+            'z' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => false],
+            'z-api' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true],
+            'codex' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true],
+            'kimi-coding' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true],
+        ];
+
+        $fallback = $defaults[$canonical] ?? [];
+
+        return [
+            'temperature' => (bool) ($capabilities['temperature'] ?? $fallback['temperature'] ?? true),
+            'top_p' => (bool) ($capabilities['top_p'] ?? $fallback['top_p'] ?? true),
+            'max_tokens' => (bool) ($capabilities['max_tokens'] ?? $fallback['max_tokens'] ?? true),
+            'streaming' => (bool) ($capabilities['streaming'] ?? $fallback['streaming'] ?? true),
+        ];
+    }
+
+    /**
+     * @return array{input:list<string>,output:list<string>}
+     */
+    public function providerModalities(string $provider): array
+    {
+        $modalities = $this->provider($provider)['modalities'] ?? [];
+
+        return [
+            'input' => $this->stringList($modalities['input'] ?? ['text']),
+            'output' => $this->stringList($modalities['output'] ?? ['text']),
+        ];
+    }
+
+    /**
+     * @return array{input:list<string>,output:list<string>}
+     */
+    public function modelModalities(string $provider, string $model): array
+    {
+        $modelData = $this->model($provider, $model);
+        $providerModalities = $this->providerModalities($provider);
+        $modalities = is_array($modelData['modalities'] ?? null) ? $modelData['modalities'] : [];
+
+        return [
+            'input' => $this->stringList($modalities['input'] ?? $providerModalities['input']),
+            'output' => $this->stringList($modalities['output'] ?? $providerModalities['output']),
+        ];
+    }
+
+    public function supportsAsync(string $provider): bool
+    {
+        return in_array($this->driver($provider), [
+            'openai',
+            'openai-compatible',
+            'deepseek',
+            'groq',
+            'mistral',
+            'ollama',
+            'openrouter',
+            'perplexity',
+            'xai',
+            'z',
+            'glm',
+            'glm-coding',
+            'kimi',
+            'kimi-coding',
+        ], true);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -201,5 +303,41 @@ class RelayRegistry
         }
 
         return $index;
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<string>
+     */
+    private function stringList(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return ['text'];
+        }
+
+        return array_values(array_map('strval', array_filter($value, static fn (mixed $item): bool => is_string($item) && $item !== '')));
+    }
+
+    private function inferDriver(string $provider): string
+    {
+        return match ($provider) {
+            'z-api' => 'glm',
+            'z' => 'glm-coding',
+            'kimi' => 'kimi',
+            'kimi-coding' => 'kimi-coding',
+            'minimax' => 'minimax',
+            'minimax-cn' => 'minimax-cn',
+            'openrouter' => 'openrouter',
+            'openai' => 'openai',
+            'anthropic' => 'anthropic',
+            'gemini' => 'gemini',
+            'deepseek' => 'deepseek',
+            'groq' => 'groq',
+            'mistral' => 'mistral',
+            'xai' => 'xai',
+            'ollama' => 'ollama',
+            'perplexity' => 'perplexity',
+            default => 'openai-compatible',
+        };
     }
 }

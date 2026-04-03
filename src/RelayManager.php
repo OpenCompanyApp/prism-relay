@@ -14,6 +14,7 @@ use OpenCompany\PrismRelay\Providers\MiniMaxCn;
 use OpenCompany\PrismRelay\Providers\ModelRouter;
 use OpenCompany\PrismRelay\Providers\UnsupportedTransportProvider;
 use OpenCompany\PrismRelay\Registry\RelayRegistry;
+use OpenCompany\PrismRelay\Registry\RelayRegistryBuilder;
 use Prism\Prism\PrismManager;
 use Prism\Prism\Providers\Anthropic\Anthropic;
 use Prism\Prism\Providers\DeepSeek\DeepSeek;
@@ -33,11 +34,19 @@ class RelayManager
     private RelayRegistry $registry;
 
     /**
-     * @param  array<string, array<string, mixed>>|null  $providers
+     * @param  array<string, array<string, mixed>>|RelayRegistry|null  $providers
      */
-    public function __construct(?array $providers = null)
+    public function __construct(array|RelayRegistry|null $providers = null)
     {
-        $this->registry = new RelayRegistry($providers);
+        if ($providers instanceof RelayRegistry) {
+            $this->registry = $providers;
+
+            return;
+        }
+
+        $this->registry = $providers !== null
+            ? new RelayRegistry($providers)
+            : (new RelayRegistryBuilder)->build();
     }
 
     /**
@@ -77,7 +86,7 @@ class RelayManager
     {
         $providerName = $this->registry->canonicalProvider($name) ?? $name;
         $provider = $this->registry->provider($providerName) ?? [];
-        $driver = $provider['driver'] ?? $this->inferDriver($providerName);
+        $driver = $this->registry->driver($providerName);
 
         return match ($driver) {
             'glm' => Glm::create($config['api_key'] ?? '', $config['url'] ?? $provider['url'] ?? null),
@@ -87,7 +96,7 @@ class RelayManager
             'minimax' => MiniMax::create($config['api_key'] ?? '', $config['url'] ?? $provider['url'] ?? null),
             'minimax-cn' => MiniMaxCn::create($config['api_key'] ?? '', $config['url'] ?? $provider['url'] ?? null),
             'model-router' => $this->createModelRouter($provider, $config),
-            'unsupported', 'external-process', 'google-vertex', 'amazon-bedrock' => new UnsupportedTransportProvider(
+            'unsupported', 'external-process', 'google-vertex', 'amazon-bedrock', 'codex' => new UnsupportedTransportProvider(
                 provider: $providerName,
                 transport: (string) $driver,
             ),
@@ -191,26 +200,4 @@ class RelayManager
         };
     }
 
-    private function inferDriver(string $provider): string
-    {
-        return match ($provider) {
-            'z-api' => 'glm',
-            'z' => 'glm-coding',
-            'kimi' => 'kimi',
-            'kimi-coding' => 'kimi-coding',
-            'minimax' => 'minimax',
-            'minimax-cn' => 'minimax-cn',
-            'openrouter' => 'openrouter',
-            'openai' => 'openai',
-            'anthropic' => 'anthropic',
-            'gemini' => 'gemini',
-            'deepseek' => 'deepseek',
-            'groq' => 'groq',
-            'mistral' => 'mistral',
-            'xai' => 'xai',
-            'ollama' => 'ollama',
-            'perplexity' => 'perplexity',
-            default => 'openai-compatible',
-        };
-    }
 }
