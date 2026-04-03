@@ -306,6 +306,24 @@ return [
         ],
     ],
 
+    'alibaba' => [
+        'models' => [
+            'qwen3.6-plus' => [
+                'display_name' => 'Qwen3.6 Plus',
+                'context' => 1048576,
+                'max_output' => 65536,
+                'input' => 0.50,
+                'output' => 3.0,
+                'cached_input' => 0.05,
+                'thinking' => true,
+                'modalities' => [
+                    'input' => ['text', 'image', 'video'],
+                    'output' => ['text'],
+                ],
+            ],
+        ],
+    ],
+
     // --- Relay custom providers ---
 
     'z-api' => [
