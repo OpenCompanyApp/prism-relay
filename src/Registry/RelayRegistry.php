@@ -327,6 +327,7 @@ class RelayRegistry
             'kimi-coding' => 'kimi-coding',
             'minimax' => 'minimax',
             'minimax-cn' => 'minimax-cn',
+            'stepfun-plan' => 'openai-compatible',
             'openrouter' => 'openrouter',
             'openai' => 'openai',
             'anthropic' => 'anthropic',

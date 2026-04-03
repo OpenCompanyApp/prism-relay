@@ -488,4 +488,25 @@ return [
             ],
         ],
     ],
+
+    'stepfun-plan' => [
+        'label' => 'StepFun Plan',
+        'description' => 'StepFun Step Plan subscription endpoint',
+        'driver' => 'openai-compatible',
+        'auth' => 'api_key',
+        'default_model' => 'step-3.5-flash',
+        'url' => 'https://api.stepfun.ai/step_plan/v1',
+        'models' => [
+            'step-3.5-flash-2603' => [
+                'display_name' => 'Step 3.5 Flash 2603 (Plan)',
+                'context' => 256000, 'max_output' => 8192,
+                'thinking' => true,
+            ],
+            'step-3.5-flash' => [
+                'display_name' => 'Step 3.5 Flash (Plan)',
+                'context' => 256000, 'max_output' => 8192,
+                'thinking' => true,
+            ],
+        ],
+    ],
 ];
