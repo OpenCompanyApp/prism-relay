@@ -178,17 +178,18 @@ class RelayRegistry
     }
 
     /**
-     * @return array{temperature: bool, top_p: bool, max_tokens: bool, streaming: bool}
+     * @return array{temperature: bool, top_p: bool, max_tokens: bool, streaming: bool, stream_usage: bool}
      */
     public function capabilities(string $provider): array
     {
         $canonical = (string) ($this->canonicalProvider($provider) ?? $provider);
         $capabilities = $this->provider($provider)['capabilities'] ?? [];
         $defaults = [
-            'z' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => false],
-            'z-api' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true],
-            'codex' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true],
-            'kimi-coding' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true],
+            'z' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => false, 'stream_usage' => false],
+            'z-api' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true, 'stream_usage' => true],
+            'codex' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true, 'stream_usage' => true],
+            'kimi-coding' => ['temperature' => false, 'top_p' => false, 'max_tokens' => true, 'streaming' => true, 'stream_usage' => true],
+            'ollama' => ['temperature' => true, 'top_p' => true, 'max_tokens' => true, 'streaming' => true, 'stream_usage' => false],
         ];
 
         $fallback = $defaults[$canonical] ?? [];
@@ -198,6 +199,7 @@ class RelayRegistry
             'top_p' => (bool) ($capabilities['top_p'] ?? $fallback['top_p'] ?? true),
             'max_tokens' => (bool) ($capabilities['max_tokens'] ?? $fallback['max_tokens'] ?? true),
             'streaming' => (bool) ($capabilities['streaming'] ?? $fallback['streaming'] ?? true),
+            'stream_usage' => (bool) ($capabilities['stream_usage'] ?? $fallback['stream_usage'] ?? true),
         ];
     }
 
