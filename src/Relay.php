@@ -99,10 +99,11 @@ class Relay
     /**
      * @param  SystemMessage[]  $systemPrompts
      * @param  Message[]  $messages
+     * @param  array<int, mixed>  $tools
      */
-    public function planPromptCache(string $provider, string $model, array $systemPrompts, array $messages): PromptCachePlan
+    public function planPromptCache(string $provider, string $model, array $systemPrompts, array $messages, array $tools = []): PromptCachePlan
     {
-        return $this->promptCacheOrchestrator->plan($provider, $model, $systemPrompts, $messages);
+        return $this->promptCacheOrchestrator->plan($provider, $model, $systemPrompts, $messages, $tools);
     }
 
     /**

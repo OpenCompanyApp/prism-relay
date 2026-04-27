@@ -9,12 +9,14 @@ use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 use Prism\Prism\ValueObjects\Messages\SystemMessage;
 use Prism\Prism\ValueObjects\Messages\ToolResultMessage;
 use Prism\Prism\ValueObjects\Messages\UserMessage;
+use Prism\Prism\Tool;
 
 class PromptCachePlanner
 {
     /**
      * @param  SystemMessage[]  $systemPrompts
      * @param  Message[]  $messages
+     * @param  array<int, mixed>  $tools
      */
     public static function plan(
         string $provider,
@@ -22,9 +24,11 @@ class PromptCachePlanner
         array $messages,
         ?string $cachedContentName = null,
         int $recentMessagesToCache = 1,
+        array $tools = [],
     ): PromptCachePlan {
         $plannedSystemPrompts = array_map(self::cloneSystemMessage(...), $systemPrompts);
         $plannedMessages = array_map(self::cloneMessage(...), $messages);
+        $plannedTools = self::cloneTools($tools);
         $providerOptions = CacheStrategy::providerOptions($provider, $cachedContentName);
 
         if (CacheStrategy::capability($provider) !== CacheCapability::Ephemeral) {
@@ -32,6 +36,7 @@ class PromptCachePlanner
                 systemPrompts: $plannedSystemPrompts,
                 messages: $plannedMessages,
                 providerOptions: $providerOptions,
+                tools: $plannedTools,
             );
         }
 
@@ -62,6 +67,7 @@ class PromptCachePlanner
             systemPrompts: $plannedSystemPrompts,
             messages: $plannedMessages,
             providerOptions: $providerOptions,
+            tools: self::markLastToolCacheable($provider, $plannedTools),
         );
     }
 
@@ -114,5 +120,48 @@ class PromptCachePlanner
         $copy->withProviderOptions($message->providerOptions());
 
         return $copy;
+    }
+
+    /**
+     * @param  array<int, mixed>  $tools
+     * @return array<int, mixed>
+     */
+    private static function cloneTools(array $tools): array
+    {
+        return array_map(static fn (mixed $tool): mixed => is_object($tool) ? clone $tool : $tool, $tools);
+    }
+
+    /**
+     * Mark exactly one tool schema as cacheable. Providers that support explicit
+     * prompt caching cache the prefix up to the last marker; using one marker
+     * keeps marker placement stable and avoids provider marker-count limits.
+     *
+     * @param  array<int, mixed>  $tools
+     * @return array<int, mixed>
+     */
+    private static function markLastToolCacheable(string $provider, array $tools): array
+    {
+        if ($tools === []) {
+            return $tools;
+        }
+
+        for ($i = count($tools) - 1; $i >= 0; $i--) {
+            if ($tools[$i] instanceof Tool) {
+                $tools[$i]->withProviderOptions(array_merge(
+                    $tools[$i]->providerOptions(),
+                    CacheStrategy::toolOptions($provider),
+                ));
+
+                return $tools;
+            }
+
+            if (is_array($tools[$i])) {
+                $tools[$i] = array_merge($tools[$i], CacheStrategy::toolSchemaOptions($provider));
+
+                return $tools;
+            }
+        }
+
+        return $tools;
     }
 }

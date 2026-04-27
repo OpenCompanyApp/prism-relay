@@ -19,10 +19,11 @@ final class PromptCacheOrchestrator
     /**
      * @param  SystemMessage[]  $systemPrompts
      * @param  array<int, \Prism\Prism\Contracts\Message>  $messages
+     * @param  array<int, mixed>  $tools
      */
-    public function plan(string $provider, string $model, array $systemPrompts, array $messages): PromptCachePlan
+    public function plan(string $provider, string $model, array $systemPrompts, array $messages, array $tools = []): PromptCachePlan
     {
-        $basePlan = PromptCachePlanner::plan($provider, $systemPrompts, $messages);
+        $basePlan = PromptCachePlanner::plan($provider, $systemPrompts, $messages, tools: $tools);
 
         if ($provider !== 'gemini') {
             return $basePlan;
@@ -49,6 +50,7 @@ final class PromptCacheOrchestrator
             systemPrompts: $remainingSystemPrompts,
             messages: $basePlan->messages,
             providerOptions: ['cachedContentName' => $cachedContentName],
+            tools: $basePlan->tools,
         );
     }
 

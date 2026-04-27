@@ -13,10 +13,12 @@ readonly class PromptCachePlan
      * @param  SystemMessage[]  $systemPrompts
      * @param  Message[]  $messages
      * @param  array<string, mixed>  $providerOptions
+     * @param  array<int, mixed>  $tools
      */
     public function __construct(
         public array $systemPrompts,
         public array $messages,
         public array $providerOptions = [],
+        public array $tools = [],
     ) {}
 }

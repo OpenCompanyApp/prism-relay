@@ -55,6 +55,29 @@ class CacheStrategy
     }
 
     /**
+     * Return provider options to mark a Prism Tool as cacheable.
+     *
+     * @return array<string, mixed>
+     */
+    public static function toolOptions(string $provider): array
+    {
+        return self::messageOptions($provider);
+    }
+
+    /**
+     * Return wire-level options to mark an already mapped tool schema as cacheable.
+     *
+     * @return array<string, mixed>
+     */
+    public static function toolSchemaOptions(string $provider): array
+    {
+        return match (self::capability($provider)) {
+            CacheCapability::Ephemeral => ['cache_control' => ['type' => 'ephemeral']],
+            default => [],
+        };
+    }
+
+    /**
      * Whether the provider reports cache token metrics in responses.
      */
     public static function reportsCacheMetrics(string $provider): bool
