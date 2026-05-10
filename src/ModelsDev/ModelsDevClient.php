@@ -352,20 +352,26 @@ final class ModelsDevClient
      */
     private function inferDriver(string $providerId, array $provider): string
     {
-        $npm = strtolower((string) ($provider['npm'] ?? ''));
-        if ($npm !== '' && isset(self::NPM_DRIVER_MAP[$npm])) {
-            return self::NPM_DRIVER_MAP[$npm];
-        }
-
-        return match ($providerId) {
+        $driver = match ($providerId) {
             'z', 'zai-coding-plan', 'kuae-cloud-coding-plan' => 'glm-coding',
             'z-api', 'zai' => 'glm',
             'kimi' => 'kimi',
             'kimi-coding', 'moonshot' => 'kimi-coding',
             'minimax' => 'minimax',
             'minimax-cn' => 'minimax-cn',
-            default => 'openai-compatible',
+            default => null,
         };
+
+        if ($driver !== null) {
+            return $driver;
+        }
+
+        $npm = strtolower((string) ($provider['npm'] ?? ''));
+        if ($npm !== '' && isset(self::NPM_DRIVER_MAP[$npm])) {
+            return self::NPM_DRIVER_MAP[$npm];
+        }
+
+        return 'openai-compatible';
     }
 
     /**

@@ -328,7 +328,7 @@ return [
 
     'z-api' => [
         'models_dev_provider' => 'zai',
-        'default_model' => 'glm-5',
+        'default_model' => 'glm-5.1',
         'url' => 'https://open.bigmodel.cn/api/paas/v4',
         'models' => [
             'glm-5.1' => [
@@ -362,7 +362,7 @@ return [
     'z' => [
         'models_dev_provider' => 'zai-coding-plan',
         'pricing_reference_provider' => 'zai',
-        'default_model' => 'glm-5',
+        'default_model' => 'glm-5.1',
         'url' => 'https://api.z.ai/api/coding/paas/v4',
         'models' => [
             'glm-5.1' => [
