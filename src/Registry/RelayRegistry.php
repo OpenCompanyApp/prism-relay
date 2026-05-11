@@ -177,6 +177,76 @@ class RelayRegistry
         return (string) (($this->provider($provider)['auth'] ?? ($this->canonicalProvider($provider) === 'codex' ? 'oauth' : 'api_key')));
     }
 
+    public function requiresApiKey(string $provider): bool
+    {
+        return $this->authMode($provider) === 'api_key'
+            && ! in_array($this->driver($provider), ['ollama'], true);
+    }
+
+    public function laravelAiDriver(string $provider, ?string $url = null): ?string
+    {
+        $definition = $this->provider($provider) ?? [];
+
+        if (array_key_exists('laravel_ai_driver', $definition)) {
+            return is_string($definition['laravel_ai_driver']) && trim($definition['laravel_ai_driver']) !== ''
+                ? trim($definition['laravel_ai_driver'])
+                : null;
+        }
+
+        $driver = $this->laravelAiDriverForTransport($this->driver($provider));
+
+        if ($driver === 'deepseek'
+            && $this->driver($provider) === 'openai-compatible'
+            && trim((string) ($url ?? $this->url($provider))) === '') {
+            return null;
+        }
+
+        return $driver;
+    }
+
+    public function laravelAiRuntimeSupported(string $provider, ?string $url = null): bool
+    {
+        return $this->laravelAiDriver($provider, $url) !== null;
+    }
+
+    public function defaultTransport(): string
+    {
+        return 'openai-compatible';
+    }
+
+    public function laravelAiDriverForTransport(string $transport): ?string
+    {
+        return match ($transport) {
+            'anthropic', 'anthropic-compatible', 'minimax', 'minimax-cn' => 'anthropic',
+            'codex' => 'codex',
+            'gemini' => 'gemini',
+            'groq' => 'groq',
+            'mistral' => 'mistral',
+            'ollama' => 'ollama',
+            'openai' => 'openai',
+            'openrouter' => 'openrouter',
+            'xai' => 'xai',
+            'deepseek', 'openai-compatible', 'perplexity', 'glm', 'glm-coding', 'kimi', 'kimi-coding' => 'deepseek',
+            'model-router' => 'model-router',
+            default => null,
+        };
+    }
+
+    public function apiFormat(string $provider): string
+    {
+        return $this->apiFormatForTransport($this->driver($provider));
+    }
+
+    public function apiFormatForTransport(string $transport): string
+    {
+        return match ($transport) {
+            'anthropic', 'anthropic-compatible', 'minimax', 'minimax-cn' => 'anthropic',
+            'gemini' => 'gemini',
+            'ollama' => 'ollama',
+            default => 'openai_compat',
+        };
+    }
+
     /**
      * @return array{temperature: bool, top_p: bool, max_tokens: bool, streaming: bool, stream_usage: bool}
      */
